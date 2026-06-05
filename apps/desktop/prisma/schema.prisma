@@ -1,0 +1,342 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id          String       @id @default(cuid())
+  code        String?      @unique
+  username    String       @unique
+  password    String
+  name        String
+  phone       String?
+  email       String?
+  roleId      String
+  role        Role         @relation(fields: [roleId], references: [id])
+  joinDate    DateTime?
+  status      String       @default("ACTIVE") // ACTIVE, INACTIVE, LEFT
+  baseSalary  Float        @default(0)
+  hourlyRate  Float        @default(0)
+  allowance   Float        @default(0)
+  note        String?
+  attendances Attendance[]
+  payrolls    Payroll[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Role {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  permissions Permission[]
+  users       User[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Permission {
+  id        String   @id @default(cuid())
+  name      String   @unique // e.g., "MANAGE_USERS", "VIEW_ORDERS"
+  roles     Role[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  date              DateTime
+  shift             String    // MORNING, AFTERNOON, EVENING, FULLDAY
+  checkIn           DateTime?
+  checkOut          DateTime?
+  totalHours        Float     @default(0)
+  lateMinutes       Int       @default(0)
+  earlyLeaveMinutes Int       @default(0)
+  overtimeHours     Float     @default(0)
+  note              String?
+  status            String    @default("PENDING") // PENDING, COMPLETED
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Payroll {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  month            String    // 'YYYY-MM'
+  totalDays        Float     @default(0)
+  totalHours       Float     @default(0)
+  baseSalary       Float     @default(0)
+  calculatedSalary Float     @default(0)
+  overtimeSalary   Float     @default(0)
+  allowance        Float     @default(0)
+  bonus            Float     @default(0)
+  deduction        Float     @default(0)
+  advance          Float     @default(0)
+  netSalary        Float     @default(0)
+  status           String    @default("DRAFT") // DRAFT, LOCKED
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([userId, month])
+}
+
+model Area {
+  id        String        @id @default(cuid())
+  name      String
+  tables    DiningTable[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model DiningTable {
+  id           String        @id @default(cuid())
+  name         String
+  areaId       String
+  area         Area          @relation(fields: [areaId], references: [id])
+  status       String        @default("AVAILABLE") // AVAILABLE, OCCUPIED, RESERVED
+  capacity     Int           @default(4)
+  reservations Reservation[]
+  orders       Order[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Reservation {
+  id            String      @id @default(cuid())
+  customerName  String
+  customerPhone String
+  partySize     Int         @default(1)
+  time          DateTime
+  diningTableId String?
+  diningTable   DiningTable? @relation(fields: [diningTableId], references: [id])
+  deposit       Float       @default(0)
+  note          String?
+  status        String      @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED, NO_SHOW, ARRIVED
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  items     MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id         String        @id @default(cuid())
+  name       String
+  price      Float
+  cost       Float         @default(0) // Giá vốn hàng bán
+  categoryId String
+  category   Category      @relation(fields: [categoryId], references: [id])
+  variants   MenuVariant[]
+  status     String        @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model MenuVariant {
+  id         String   @id @default(cuid())
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  name       String   // e.g., "Small", "Large"
+  price      Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Topping {
+  id        String   @id @default(cuid())
+  name      String
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ingredient {
+  id                 String               @id @default(cuid())
+  name               String
+  unit               String               // e.g., "kg", "liter"
+  stockQuantity      Float                @default(0)
+  recipeIngredients  RecipeIngredient[]
+  inventoryTrans     InventoryTransaction[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+}
+
+model Supplier {
+  id        String            @id @default(cuid())
+  name      String
+  phone     String?
+  address   String?
+  batches   InventoryBatch[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model InventoryBatch {
+  id           String                 @id @default(cuid())
+  supplierId   String
+  supplier     Supplier               @relation(fields: [supplierId], references: [id])
+  totalCost    Float
+  transactions InventoryTransaction[]
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+}
+
+model InventoryTransaction {
+  id               String          @id @default(cuid())
+  ingredientId     String
+  ingredient       Ingredient      @relation(fields: [ingredientId], references: [id])
+  inventoryBatchId String?
+  inventoryBatch   InventoryBatch? @relation(fields: [inventoryBatchId], references: [id])
+  type             String          // IN, OUT
+  quantity         Float
+  costPerUnit      Float?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Recipe {
+  id          String             @id @default(cuid())
+  name        String
+  ingredients RecipeIngredient[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model RecipeIngredient {
+  id           String     @id @default(cuid())
+  recipeId     String
+  recipe       Recipe     @relation(fields: [recipeId], references: [id])
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  diningTableId String?
+  diningTable   DiningTable? @relation(fields: [diningTableId], references: [id])
+  status        String      @default("OPEN") // OPEN, PAID, CANCELLED
+  totalAmount   Float       @default(0)
+  discount      Float       @default(0)
+  surcharge     Float       @default(0)
+  vat           Float       @default(0)
+  note          String?
+  items         OrderItem[]
+  payments      Payment[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id])
+  itemName     String
+  categoryName String?
+  quantity     Int
+  price        Float
+  cost         Float    @default(0) // Snapshot giá vốn lúc bán
+  note         String?
+  status       String   @default("PENDING") // PENDING, PREPARING, READY, SERVED, CANCELLED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  amount    Float
+  method    String   // CASH, CARD, TRANSFER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  total     Float
+  issuedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  category      String   // Nhập hàng, Lương, Mặt bằng...
+  amount        Float
+  paymentMethod String   @default("CASH") // CASH, BANK, CARD, E_WALLET
+  description   String
+  receiptUrl    String?
+  createdBy     String?
+  status        String   @default("ACTIVE") // ACTIVE, CANCELLED
+  date          DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Revenue {
+  id            String   @id @default(cuid())
+  source        String
+  amount        Float
+  paymentMethod String   @default("CASH") // CASH, BANK, CARD, E_WALLET
+  description   String
+  receiptUrl    String?
+  createdBy     String?
+  status        String   @default("ACTIVE") // ACTIVE, CANCELLED
+  date          DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Cashbook {
+  id            String   @id @default(cuid())
+  type          String   // IN, OUT
+  amount        Float
+  paymentMethod String   // CASH, BANK, CARD, E_WALLET
+  description   String
+  referenceType String   // ORDER, EXPENSE, REVENUE
+  referenceId   String?
+  status        String   @default("ACTIVE") // ACTIVE, CANCELLED
+  date          DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PrinterSetting {
+  id        String   @id @default(cuid())
+  name      String
+  ipAddress String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  userId    String?
+  details   String
+  createdAt DateTime @default(now())
+}

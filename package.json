@@ -1,0 +1,14 @@
+{
+  "name": "lukari-restaurant-os-workspace",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=lukari-desktop",
+    "build": "npm run build --workspace=lukari-desktop",
+    "db:generate": "npm run db:generate --workspace=lukari-desktop",
+    "db:migrate": "npm run db:migrate --workspace=lukari-desktop",
+    "db:seed": "npm run db:seed --workspace=lukari-desktop"
+  }
+}
