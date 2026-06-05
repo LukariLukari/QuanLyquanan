@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { toast } from 'sonner';
 import { Calendar, Plus, Check } from 'lucide-react';
 import { format } from 'date-fns';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Reservations() {
   const [reservations, setReservations] = useState<any[]>([]);
@@ -88,8 +89,8 @@ export function Reservations() {
                   <TableCell>{r.partySize}</TableCell>
                   <TableCell>{(r.deposit || 0).toLocaleString()} đ</TableCell>
                   <TableCell>
-                    <Badge variant={r.status === 'CONFIRMED' ? 'success' : r.status === 'PENDING' ? 'warning' : 'default'}>
-                      {r.status}
+                    <Badge variant={r.status === 'CONFIRMED' ? 'success' : r.status === 'PENDING' ? 'error' : 'default'}>
+                      {translateStatus(r.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right flex justify-end gap-2">
@@ -141,7 +142,7 @@ export function Reservations() {
                 value={formData.diningTableId || ''} onChange={e => setFormData({...formData, diningTableId: e.target.value})}>
                 <option value="">Chưa chọn bàn</option>
                 {tables.map(t => (
-                  <option key={t.id} value={t.id}>{t.name} ({t.status})</option>
+                  <option key={t.id} value={t.id}>{t.name} ({translateStatus(t.status)})</option>
                 ))}
               </select>
             </div>

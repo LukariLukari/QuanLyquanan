@@ -10,6 +10,7 @@ import { Plus, Minus, Trash2, ArrowRightLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../store/useAuthStore';
 import { Modal } from '../components/ui/Modal';
+import { translateStatus } from '../lib/statusLabels';
 
 export function POS() {
   const [areas, setAreas] = useState<any[]>([]);
@@ -174,7 +175,7 @@ export function POS() {
                   >
                     <div className="font-medium text-ink">{table.name}</div>
                     <div className="text-xs text-muted mt-1">
-                      {table.status === 'AVAILABLE' ? 'Trống' : table.status === 'OCCUPIED' ? 'Đang phục vụ' : table.status === 'RESERVED' ? 'Đã đặt' : table.status}
+                      {translateStatus(table.status)}
                     </div>
                   </button>
                 ))}
@@ -341,7 +342,7 @@ export function POS() {
               <optgroup key={area.id} label={area.name}>
                 {area.tables.filter((t:any) => t.status !== 'OCCUPIED').map((t:any) => (
                   <option key={t.id} value={t.id}>
-                    {t.name} ({t.status === 'AVAILABLE' ? 'Trống' : t.status === 'RESERVED' ? 'Đã đặt' : t.status})
+                    {t.name} ({translateStatus(t.status)})
                   </option>
                 ))}
               </optgroup>

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Clock, LogIn, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { format } from 'date-fns';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Attendance() {
   const [attendances, setAttendances] = useState<any[]>([]);
@@ -94,19 +95,19 @@ export function Attendance() {
                 <TableRow key={a.id}>
                   <TableCell>{format(new Date(a.date), 'dd/MM/yyyy')}</TableCell>
                   <TableCell className="font-medium">{a.user?.name}</TableCell>
-                  <TableCell>{a.shift}</TableCell>
+                  <TableCell>{translateStatus(a.shift)}</TableCell>
                   <TableCell>{a.checkIn ? format(new Date(a.checkIn), 'HH:mm') : '-'}</TableCell>
                   <TableCell>{a.checkOut ? format(new Date(a.checkOut), 'HH:mm') : '-'}</TableCell>
                   <TableCell>{a.totalHours ? `${a.totalHours}h` : '-'}</TableCell>
                   <TableCell>
-                    <Badge variant={a.status === 'COMPLETED' ? 'success' : 'warning'}>
-                      {a.status}
+                    <Badge variant={a.status === 'COMPLETED' ? 'success' : 'error'}>
+                      {translateStatus(a.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     {a.status === 'PENDING' && a.userId === user?.id && (
                       <Button variant="danger" size="sm" onClick={() => handleCheckOut(a.id)}>
-                        <LogOut className="h-4 w-4 mr-1" /> Check-out
+                        <LogOut className="h-4 w-4 mr-1" /> Ra ca
                       </Button>
                     )}
                   </TableCell>

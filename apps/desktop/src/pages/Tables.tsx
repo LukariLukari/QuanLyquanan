@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { tableService } from '../services/api';
 import { Card, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Tables() {
   const [areas, setAreas] = useState<any[]>([]);
@@ -25,7 +26,7 @@ export function Tables() {
                   </div>
                   <span className="font-medium text-ink">{table.name}</span>
                   <Badge variant={table.status === 'AVAILABLE' ? 'outline' : table.status === 'OCCUPIED' ? 'error' : 'default'}>
-                    {table.status}
+                    {translateStatus(table.status)}
                   </Badge>
                 </CardContent>
               </Card>

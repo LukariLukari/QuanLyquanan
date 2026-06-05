@@ -3,6 +3,7 @@ import { cashbookService } from '../services/api';
 import { Card, CardContent } from '../components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
 import { Badge } from '../components/ui/Badge';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Cashbook() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -72,15 +73,15 @@ export function Cashbook() {
                   <TableCell>{new Date(tx.date).toLocaleString()}</TableCell>
                   <TableCell className="font-medium text-muted">#{tx.referenceId?.slice(-6).toUpperCase()}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{tx.referenceType}</Badge>
+                    <Badge variant="outline">{tx.referenceType === 'ORDER' ? 'Đơn hàng' : tx.referenceType === 'EXPENSE' ? 'Chi phí' : tx.referenceType === 'REVENUE' ? 'Doanh thu' : tx.referenceType}</Badge>
                   </TableCell>
                   <TableCell>{tx.description}</TableCell>
                   <TableCell className={`font-medium ${tx.type === 'IN' ? 'text-success' : 'text-error'}`}>
                     {tx.type === 'IN' ? '+' : '-'}{tx.amount.toLocaleString()} đ
                   </TableCell>
-                  <TableCell>{tx.paymentMethod}</TableCell>
+                  <TableCell>{translateStatus(tx.paymentMethod)}</TableCell>
                   <TableCell>
-                    <Badge variant={tx.status === 'ACTIVE' ? 'success' : 'outline'}>{tx.status}</Badge>
+                    <Badge variant={tx.status === 'ACTIVE' ? 'success' : 'outline'}>{translateStatus(tx.status)}</Badge>
                   </TableCell>
                 </TableRow>
               ))}

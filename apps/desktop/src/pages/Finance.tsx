@@ -7,6 +7,7 @@ import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 import { toast } from 'sonner';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Finance() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -93,9 +94,9 @@ export function Finance() {
                   </TableCell>
                   <TableCell>{exp.description}</TableCell>
                   <TableCell className="text-error font-medium">-{exp.amount.toLocaleString()} đ</TableCell>
-                  <TableCell>{exp.paymentMethod}</TableCell>
+                  <TableCell>{translateStatus(exp.paymentMethod)}</TableCell>
                   <TableCell>
-                    <Badge variant={exp.status === 'ACTIVE' ? 'success' : 'outline'}>{exp.status}</Badge>
+                    <Badge variant={exp.status === 'ACTIVE' ? 'success' : 'outline'}>{translateStatus(exp.status)}</Badge>
                   </TableCell>
                   <TableCell>
                     {exp.status === 'ACTIVE' && (

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Modal } from '../components/ui/Modal';
 import { toast } from 'sonner';
 import { Users, Plus, Edit, Trash2 } from 'lucide-react';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Staff() {
   const [staffs, setStaffs] = useState<any[]>([]);
@@ -98,8 +99,8 @@ export function Staff() {
                   </TableCell>
                   <TableCell>{s.phone}</TableCell>
                   <TableCell>
-                    <Badge variant={s.status === 'ACTIVE' ? 'success' : s.status === 'INACTIVE' ? 'warning' : 'default'}>
-                      {s.status}
+                    <Badge variant={s.status === 'ACTIVE' ? 'success' : s.status === 'INACTIVE' ? 'error' : 'default'}>
+                      {translateStatus(s.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { toast } from 'sonner';
 import { Calculator, Lock } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Payroll() {
   const [payrolls, setPayrolls] = useState<any[]>([]);
@@ -99,7 +100,7 @@ export function Payroll() {
                   <TableCell className="font-bold text-primary">{(p.netSalary || 0).toLocaleString()} đ</TableCell>
                   <TableCell>
                     <Badge variant={p.status === 'LOCKED' ? 'success' : 'default'}>
-                      {p.status}
+                      {translateStatus(p.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

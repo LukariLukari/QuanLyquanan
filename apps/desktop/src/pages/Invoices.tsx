@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Card, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { translateStatus } from '../lib/statusLabels';
 
 export function Invoices() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -35,7 +36,7 @@ export function Invoices() {
                   <TableCell>{new Date(inv.createdAt).toLocaleString()}</TableCell>
                   <TableCell>{inv.order?.diningTable?.name || 'Mang đi'}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{inv.order?.payments?.[0]?.method || 'CASH'}</Badge>
+                    <Badge variant="outline">{translateStatus(inv.order?.payments?.[0]?.method || 'CASH')}</Badge>
                   </TableCell>
                   <TableCell className="text-right font-medium text-primary">
                     {inv.total.toLocaleString()} đ
