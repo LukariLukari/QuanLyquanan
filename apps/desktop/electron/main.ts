@@ -71,7 +71,7 @@ ipcMain.handle('menu:deleteCategory', (_, id) => menuService.deleteCategory(id))
 ipcMain.handle('menu:getItems', () => menuService.getMenuItems())
 ipcMain.handle('menu:createItem', (_, data) => menuService.createMenuItem(data))
 ipcMain.handle('menu:updateItem', (_, id, data) => menuService.updateMenuItem(id, data))
-ipcMain.handle('menu:deleteItem', (_, id) => menuService.deleteItem(id))
+ipcMain.handle('menu:deleteItem', (_, id) => menuService.deleteMenuItem(id))
 
 // Orders
 ipcMain.handle('order:getOpen', (_, tableId) => orderService.getOpenOrderByTable(tableId))

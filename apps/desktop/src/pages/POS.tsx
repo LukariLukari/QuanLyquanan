@@ -21,6 +21,7 @@ export function POS() {
   const [cancelReason, setCancelReason] = useState('');
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferTargetId, setTransferTargetId] = useState('');
+  const [posMode, setPosMode] = useState<'DINE_IN' | 'TAKEAWAY'>('DINE_IN');
 
   const user = useAuthStore(state => state.user);
   const { selectedTableId, currentOrder, setSelectedTable, addItem, updateItemQuantity, removeItem, clearOrder } = usePosStore();
@@ -66,7 +67,7 @@ export function POS() {
         });
       } else {
         const newOrder = await orderService.create({
-          diningTableId: selectedTableId,
+          diningTableId: selectedTableId === 'TAKEAWAY' ? null : selectedTableId,
           items: currentOrder.items,
           totalAmount,
           discount: currentOrder.discount,
@@ -92,9 +93,9 @@ export function POS() {
   };
 
   const confirmCancelItem = async () => {
-    if (!cancelReason) return toast.error('Vui lòng nhập lý do');
     try {
-      await orderService.cancelItem(cancelModalItem.id, cancelReason, user!.id);
+      const reason = cancelReason.trim() || 'Hủy bởi nhân viên';
+      await orderService.cancelItem(cancelModalItem.id, reason, user!.id);
       toast.success('Hủy món thành công');
       setCancelModalItem(null);
       setCancelReason('');
@@ -124,13 +125,39 @@ export function POS() {
   const totalAmount = subtotal - (currentOrder?.discount || 0) + (currentOrder?.surcharge || 0) + (subtotal * (currentOrder?.vat || 0) / 100);
 
   return (
-    <div className="flex h-full gap-4 -m-6 p-4 bg-secondary">
-      {/* Cột Trái: Bàn */}
-      <div className="w-1/4 bg-surface-card rounded-xl shadow-soft flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-hairline bg-canvas">
-          <h2 className="font-bold text-lg">Khu vực & Bàn</h2>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+    <div className="flex flex-col h-full gap-4 -m-6 p-4 bg-secondary">
+      {/* Top Bar: Tabs */}
+      <div className="flex gap-2">
+        <Button 
+          variant={posMode === 'DINE_IN' ? 'primary' : 'outline'}
+          className={posMode === 'DINE_IN' ? 'shadow-soft' : 'bg-canvas text-muted border-transparent'}
+          onClick={() => {
+            setPosMode('DINE_IN');
+            if (selectedTableId === 'TAKEAWAY') setSelectedTable(null, null);
+          }}
+        >
+          Tại chỗ (Bàn ăn)
+        </Button>
+        <Button 
+          variant={posMode === 'TAKEAWAY' ? 'primary' : 'outline'}
+          className={posMode === 'TAKEAWAY' ? 'shadow-soft' : 'bg-canvas text-muted border-transparent'}
+          onClick={() => {
+            setPosMode('TAKEAWAY');
+            setSelectedTable('TAKEAWAY', null);
+          }}
+        >
+          Mang đi (Bán lẻ)
+        </Button>
+      </div>
+
+      <div className="flex flex-1 gap-4 min-h-0">
+        {/* Cột Trái: Bàn */}
+        {posMode === 'DINE_IN' && (
+          <div className="w-1/4 bg-surface-card rounded-xl shadow-soft flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-hairline bg-canvas">
+              <h2 className="font-bold text-lg">Khu vực & Bàn</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {areas.map(area => (
             <div key={area.id}>
               <h3 className="text-sm font-semibold text-muted mb-3">{area.name}</h3>
@@ -146,7 +173,9 @@ export function POS() {
                     }`}
                   >
                     <div className="font-medium text-ink">{table.name}</div>
-                    <div className="text-xs text-muted mt-1">{table.status}</div>
+                    <div className="text-xs text-muted mt-1">
+                      {table.status === 'AVAILABLE' ? 'Trống' : table.status === 'OCCUPIED' ? 'Đang phục vụ' : table.status === 'RESERVED' ? 'Đã đặt' : table.status}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -154,6 +183,7 @@ export function POS() {
           ))}
         </div>
       </div>
+      )}
 
       {/* Cột Giữa: Menu */}
       <div className="flex-1 bg-surface-card rounded-xl shadow-soft flex flex-col overflow-hidden">
@@ -182,9 +212,16 @@ export function POS() {
               <button
                 key={item.id}
                 onClick={() => selectedTableId ? addItem(item) : toast.error('Vui lòng chọn bàn trước')}
-                className="bg-canvas border border-hairline p-4 rounded-xl text-left hover:border-primary/30 hover:shadow-soft transition-all"
+                className="bg-canvas border border-hairline p-3 rounded-xl text-left hover:border-primary/30 hover:shadow-soft transition-all flex flex-col group overflow-hidden"
               >
-                <div className="font-medium text-ink line-clamp-2 h-10 mb-2">{item.name}</div>
+                <div className="w-full h-24 mb-3 bg-surface-soft rounded-lg overflow-hidden flex-shrink-0">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted font-medium text-xs">Không có ảnh</div>
+                  )}
+                </div>
+                <div className="font-medium text-ink line-clamp-2 h-10 mb-1">{item.name}</div>
                 <div className="font-bold text-primary">{item.price.toLocaleString()} đ</div>
               </button>
             ))}
@@ -197,7 +234,11 @@ export function POS() {
         <div className="p-4 border-b border-hairline bg-surface-soft flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-lg">Hóa đơn tạm tính</h2>
-            {selectedTableId && <Badge variant="success">Bàn đang chọn</Badge>}
+            {selectedTableId && (
+              <Badge variant="success">
+                {selectedTableId === 'TAKEAWAY' ? 'Bán mang đi' : 'Bàn đang chọn'}
+              </Badge>
+            )}
           </div>
           {currentOrder?.id && (
             <div className="flex gap-2">
@@ -257,7 +298,13 @@ export function POS() {
           onClose={() => setIsPaymentOpen(false)}
           orderId={currentOrder.id}
           tableId={selectedTableId}
+          tableName={
+            selectedTableId === 'TAKEAWAY' 
+              ? 'Mang đi' 
+              : areas.flatMap(a => a.tables).find(t => t.id === selectedTableId)?.name || 'Bàn không xác định'
+          }
           totalAmount={totalAmount}
+          order={currentOrder}
           onSuccess={() => {
             clearOrder();
             loadData();
@@ -270,8 +317,8 @@ export function POS() {
         <div className="space-y-4">
           <p className="text-sm text-muted">Bạn đang hủy món: <strong>{cancelModalItem?.itemName}</strong> (x{cancelModalItem?.quantity})</p>
           <div>
-            <label className="text-sm font-medium">Lý do hủy</label>
-            <Input autoFocus value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="Nhập lý do: Hết món, Khách đổi ý..." />
+            <label className="text-sm font-medium">Lý do hủy (không bắt buộc)</label>
+            <Input autoFocus value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="VD: Khách đổi ý, Hết món..." />
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="ghost" onClick={() => setCancelModalItem(null)}>Đóng</Button>
@@ -293,7 +340,9 @@ export function POS() {
             {areas.map(area => (
               <optgroup key={area.id} label={area.name}>
                 {area.tables.filter((t:any) => t.status !== 'OCCUPIED').map((t:any) => (
-                  <option key={t.id} value={t.id}>{t.name} ({t.status})</option>
+                  <option key={t.id} value={t.id}>
+                    {t.name} ({t.status === 'AVAILABLE' ? 'Trống' : t.status === 'RESERVED' ? 'Đã đặt' : t.status})
+                  </option>
                 ))}
               </optgroup>
             ))}
@@ -304,6 +353,7 @@ export function POS() {
           </div>
         </div>
       </Modal>
+      </div>
     </div>
   );
 }

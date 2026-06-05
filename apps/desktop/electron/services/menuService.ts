@@ -16,10 +16,10 @@ export const menuService = {
   getMenuItems: async () => {
     return prisma.menuItem.findMany({ include: { category: true } });
   },
-  createMenuItem: async (data: { name: string; price: number; categoryId: string; status?: string }) => {
+  createMenuItem: async (data: { name: string; price: number; categoryId: string; status?: string; imageUrl?: string }) => {
     return prisma.menuItem.create({ data });
   },
-  updateMenuItem: async (id: string, data: { name?: string; price?: number; categoryId?: string; status?: string }) => {
+  updateMenuItem: async (id: string, data: { name?: string; price?: number; categoryId?: string; status?: string; imageUrl?: string }) => {
     return prisma.menuItem.update({ where: { id }, data });
   },
   deleteMenuItem: async (id: string) => {

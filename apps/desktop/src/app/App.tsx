@@ -3,7 +3,8 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { Dashboard } from '../pages/Dashboard'
 import { Tables } from '../pages/Tables'
-import { Menu } from '../pages/Menu'
+import { MenuItems } from '../pages/MenuItems'
+import { MenuCategories } from '../pages/MenuCategories'
 import { POS } from '../pages/POS'
 import { Invoices } from '../pages/Invoices'
 import { Settings } from '../pages/Settings'
@@ -34,7 +35,9 @@ export function App() {
           <Route path="/pos" element={<POS />} />
           <Route path="/tables" element={<Tables />} />
           <Route path="/reservations" element={<Reservations />} />
-          <Route path="/menu" element={<Menu />} />
+          <Route path="/menu" element={<Navigate to="/menu/items" replace />} />
+          <Route path="/menu/items" element={<MenuItems />} />
+          <Route path="/menu/categories" element={<MenuCategories />} />
           <Route path="/kitchen" element={<Kitchen />} />
           <Route path="/staff" element={<Staff />} />
           <Route path="/attendance" element={<Attendance />} />

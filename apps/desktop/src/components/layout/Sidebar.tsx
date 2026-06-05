@@ -14,7 +14,16 @@ export function Sidebar() {
     { icon: Calendar, label: 'Đặt chỗ', path: '/reservations', permission: 'SALES' },
     { icon: Flame, label: 'Bếp (KDS)', path: '/kitchen', permission: 'KITCHEN' },
     { icon: FileText, label: 'Hóa đơn', path: '/invoices', permission: 'SALES' },
-    { icon: Coffee, label: 'Thực đơn', path: '/menu', permission: 'MANAGE_MENU' },
+    { 
+      icon: Coffee, 
+      label: 'Thực đơn', 
+      path: '/menu/items', // Default path for active match
+      permission: 'MANAGE_MENU',
+      children: [
+        { label: 'Danh sách món', path: '/menu/items' },
+        { label: 'Danh mục', path: '/menu/categories' }
+      ]
+    },
     { icon: Users, label: 'Nhân viên', path: '/staff', permission: 'MANAGE_STAFF' },
     { icon: Clock, label: 'Chấm công', path: '/attendance', permission: 'MANAGE_STAFF' },
     { icon: Calculator, label: 'Tính lương', path: '/payroll', permission: 'MANAGE_STAFF' },
@@ -32,19 +41,39 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
         {menuItems.map((item) => {
           return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => cn(
-                "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                isActive 
-                  ? "bg-primary text-canvas" 
-                  : "text-muted hover:bg-surface-soft hover:text-ink"
+            <div key={item.path || item.label}>
+              <NavLink
+                to={item.path}
+                className={({ isActive }) => cn(
+                  "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  isActive || location.pathname.startsWith(item.path) && item.children
+                    ? "bg-primary text-canvas" 
+                    : "text-muted hover:bg-surface-soft hover:text-ink"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </NavLink>
+              
+              {item.children && location.pathname.startsWith('/menu') && (
+                <div className="ml-9 mt-1 space-y-1">
+                  {item.children.map(child => (
+                    <NavLink
+                      key={child.path}
+                      to={child.path}
+                      className={({ isActive }) => cn(
+                        "block px-3 py-2 rounded-lg text-sm transition-colors",
+                        isActive 
+                          ? "text-primary font-medium bg-primary/10" 
+                          : "text-muted hover:text-ink hover:bg-surface-soft"
+                      )}
+                    >
+                      {child.label}
+                    </NavLink>
+                  ))}
+                </div>
               )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </NavLink>
+            </div>
           );
         })}
       </nav>

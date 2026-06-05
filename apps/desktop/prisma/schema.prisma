@@ -139,6 +139,7 @@ model MenuItem {
   category   Category      @relation(fields: [categoryId], references: [id])
   variants   MenuVariant[]
   status     String        @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK
+  imageUrl   String?
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 }

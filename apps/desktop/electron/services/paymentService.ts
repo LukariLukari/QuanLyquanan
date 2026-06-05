@@ -1,7 +1,7 @@
 import { prisma } from './db';
 
 export const paymentService = {
-  processPayment: async (data: { orderId: string; amount: number; method: string; tableId: string; nextTableStatus: string }) => {
+  processPayment: async (data: { orderId: string; amount: number; method: string; tableId?: string; nextTableStatus?: string }) => {
     return prisma.$transaction(async (tx) => {
       // 1. Create Payment
       await tx.payment.create({
@@ -26,11 +26,13 @@ export const paymentService = {
         data: { status: 'PAID' }
       });
 
-      // 4. Update Table Status
-      await tx.diningTable.update({
-        where: { id: data.tableId },
-        data: { status: data.nextTableStatus }
-      });
+      // 4. Update Table Status (nếu có bàn)
+      if (data.tableId && data.nextTableStatus) {
+        await tx.diningTable.update({
+          where: { id: data.tableId },
+          data: { status: data.nextTableStatus }
+        });
+      }
 
       // 5. Ghi nhận vào sổ quỹ (Cashbook)
       await tx.cashbook.create({
